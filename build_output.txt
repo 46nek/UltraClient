@@ -1,0 +1,20 @@
+MSBuild のバージョン 17.14.40+3e7442088 (.NET Framework)
+
+  WebViewHost.cpp
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\algorithm(3800,24): warning C4244: '=': 'int' から 'wchar_t' への変換です。データが失われる可能性があります。 [C:\Users\nisimoto\Desktop\Krunker Client\build\KrunkerUltraClient.vcxproj]
+  (ソース ファイル '../src/webview/WebViewHost.cpp' をコンパイルしています)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\algorithm(3800,24):
+      テンプレートインスタンス化コンテキスト (最初に最も古いもの) は
+          C:\Users\nisimoto\Desktop\Krunker Client\src\webview\WebViewHost.cpp(237,42):
+          コンパイル対象の関数 テンプレート インスタンス化 '_OutIt std::transform<std::_String_iterator<std::_String_val<std::_Simple_types<_Elem>>>,std::_String_iterator<std::_String_val<std::_Simple_types<_Elem>>>,int(__cdecl *)(int)>(const _InIt,const _InIt,_OutIt,_Fn)' のリファレンスを確認してください
+          with
+          [
+              _OutIt=std::_String_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Elem=wchar_t,
+              _InIt=std::_String_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Fn=int (__cdecl *)(int)
+          ]
+  
+  
+C:\Users\nisimoto\Desktop\Krunker Client\resources\icons\app.rc(3): error RC2135: file not found: app.ico [C:\Users\nisimoto\Desktop\Krunker Client\build\KrunkerUltraClient.vcxproj]
+  
