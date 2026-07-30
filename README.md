@@ -25,8 +25,16 @@
 *   `scripts/`: この中に `.js` ファイルを配置すると、ゲームロード時に自動実行されます。初期状態で `auto_memory_cleaner.js` が導入されています。
 *   `ui/`: クライアント専用のUIや設定画面のHTML/CSS/JSが含まれています。
 
-## ⚙️ ビルド方法 (How to Build)
+## 📥 ダウンロードと使い方 (Installation)
 
+1.  GitHubの **[Releases ページ](https://github.com/46nek/UltraClient/releases)** から、最新の `KrunkerUltraClient_vX.X.X.zip` をダウンロードします。
+2.  ダウンロードしたZIPファイルを右クリックし、「すべて展開」で任意のフォルダ（デスクトップなど）に解凍します。
+3.  解凍したフォルダ内にある `KrunkerUltraClient.exe` をダブルクリックして起動します。
+    *   ※ TCPレジストリ最適化（通信遅延の極限化）を使用する場合は、exeファイルを右クリックして **「管理者として実行」** を選択してください。
+
+## ⚙️ 開発者向け: ソースからのビルド (For Developers)
+
+ご自身でソースコードを改変してビルドしたい方向けの手順です。
 Windows環境と Visual Studio 2022 (C++ ワークロード) が必要です。
 
 1.  このリポジトリをクローンします。
