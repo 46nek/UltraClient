@@ -157,12 +157,19 @@ void WebViewHost::InitAsync(const WebViewConfig& config,
 
                             RegisterEvents();
 
-                            // Always inject ranked_ipc.js (core feature)
+                            // Always inject ranked_ipc.js and ranked_launcher.js (core features)
                             if (!m_config.scriptsDir.empty()) {
                                 std::wstring ipcScriptPath = m_config.scriptsDir + L"\\ranked_ipc.js";
                                 std::wstring ipcScript = ReadFileContent(ipcScriptPath);
                                 if (!ipcScript.empty()) {
                                     std::wstring wrapped = L"(function(){" + ipcScript + L"})();";
+                                    m_webview->AddScriptToExecuteOnDocumentCreated(wrapped.c_str(), nullptr);
+                                }
+                                
+                                std::wstring launcherPath = m_config.scriptsDir + L"\\ranked_launcher.js";
+                                std::wstring launcherScript = ReadFileContent(launcherPath);
+                                if (!launcherScript.empty()) {
+                                    std::wstring wrapped = L"(function(){" + launcherScript + L"})();";
                                     m_webview->AddScriptToExecuteOnDocumentCreated(wrapped.c_str(), nullptr);
                                 }
                             }
@@ -171,7 +178,8 @@ void WebViewHost::InitAsync(const WebViewConfig& config,
                             if (m_config.enableUserscripts && !m_config.scriptsDir.empty()) {
                                 for (const auto& f : ListFiles(m_config.scriptsDir, L".js")) {
                                     if (f.find(L"ranked_overlay.js") != std::wstring::npos) continue; 
-                                    if (f.find(L"ranked_ipc.js") != std::wstring::npos) continue; // Skip here as we loaded it above
+                                    if (f.find(L"ranked_ipc.js") != std::wstring::npos) continue;
+                                    if (f.find(L"ranked_launcher.js") != std::wstring::npos) continue;
                                     
                                     std::wstring script = ReadFileContent(f);
                                     if (!script.empty()) {

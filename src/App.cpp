@@ -341,6 +341,10 @@ bool App::Init(HINSTANCE hInstance) {
                                     cds.lpData = (PVOID)utf8Msg.c_str();
                                     ::SendMessageW(hMain, WM_COPYDATA, 0, (LPARAM)&cds);
                                 }
+                            } else if (type == "openAltWindow") {
+                                // Launch a new instance with --alt-window flag
+                                std::wstring exePath = util::GetExeDir() + L"\\KrunkerUltraClient.exe";
+                                ::ShellExecuteW(nullptr, L"open", exePath.c_str(), L"--alt-window", nullptr, SW_SHOWNORMAL);
                             } else if (type == "forwardIpcToAlt") {
                                 // Send IPC from Main Window to Alt Window
                                 HWND hAlt = ::FindWindowW(L"KrunkerUltraClientWnd", L"Krunker Ultra Client (Alt / Ranked)");
