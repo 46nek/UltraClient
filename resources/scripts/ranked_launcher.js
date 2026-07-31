@@ -10,110 +10,78 @@ function launchRanked() {
     }
 }
 
-// 1. Fallback: F7 Keybind
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'F7') {
-        e.preventDefault();
-        e.stopPropagation();
-        launchRanked();
-    }
-}, true);
-
-// 2. Inject Button into Krunker's UI
-setInterval(() => {
-    // 試行1: windowHeader (Krunkerの標準ポップアップ)
-    let header = document.querySelector('#windowHeader');
-    // 試行2: もしFACEITやRanked用の特定のiframe/divがあればそのコンテナを探す
-    let isRankedWindow = false;
-    
-    if (header && (header.textContent.includes('Ranked') || header.textContent.includes('Matchmaking') || header.textContent.includes('FACEIT'))) {
-        isRankedWindow = true;
-    }
-    
-    // KrunkerのUI構造は頻繁に変わるため、"Ranked"というテキストを含むボタンやヘッダーを広く探す
-    let rankedMenuObj = document.querySelector('#menuBtnRanked'); // メインメニューのRankedボタン
-    
-    // ポップアップが開いているかチェック
-    let windowHolder = document.getElementById('windowHolder');
-    if (windowHolder && windowHolder.style.display !== 'none') {
-        if (header && (header.textContent.includes('Ranked') || header.textContent.toLowerCase().includes('comp'))) {
-            isRankedWindow = true;
+function findFindMatchButton() {
+    let elements = document.querySelectorAll('div, button, span');
+    for (let i = 0; i < elements.length; i++) {
+        let el = elements[i];
+        let text = el.textContent.trim().toUpperCase();
+        if (text === 'FIND MATCH' || text === 'PLAY RANKED') {
+            // Check if it's the actual button (prevents matching huge container divs that happen to only contain the button text)
+            // Krunker buttons usually have classes like 'button', 'btn', or cursor: pointer
+            let style = window.getComputedStyle(el);
+            if (el.tagName === 'BUTTON' || el.className.toLowerCase().includes('button') || el.className.toLowerCase().includes('btn') || style.cursor === 'pointer') {
+                return el;
+            }
         }
     }
+    return null;
+}
 
-    if (isRankedWindow) {
+setInterval(() => {
+    let findMatchBtn = findFindMatchButton();
+    
+    if (findMatchBtn) {
         if (!document.getElementById('kuc-ranked-btn')) {
-            let btn = document.createElement('div');
-            btn.id = 'kuc-ranked-btn';
-            btn.className = 'button small buttonP'; // Krunker標準の緑/青ボタンクラス
-            btn.innerHTML = 'Open KUC Ranked 🚀';
-            btn.style.position = 'absolute';
-            btn.style.right = '20px';
-            btn.style.top = '60px';
-            btn.style.zIndex = '999999';
-            btn.style.backgroundColor = '#ea580c';
-            btn.style.color = 'white';
-            btn.style.border = '3px solid #000';
-            btn.style.borderRadius = '6px';
-            btn.style.padding = '10px 20px';
-            btn.style.fontSize = '18px';
-            btn.style.cursor = 'pointer';
-            btn.onclick = () => {
+            let kucBtn = document.createElement('div');
+            kucBtn.id = 'kuc-ranked-btn';
+            
+            // Try to copy Krunker's button classes to blend in
+            kucBtn.className = findMatchBtn.className; 
+            
+            kucBtn.innerHTML = 'KUC Fast Queue 🚀';
+            
+            // Apply inline styles to make it stand out and look good
+            kucBtn.style.backgroundColor = '#ea580c';
+            kucBtn.style.color = 'white';
+            kucBtn.style.marginLeft = '15px';
+            kucBtn.style.cursor = 'pointer';
+            kucBtn.style.display = 'inline-flex';
+            kucBtn.style.alignItems = 'center';
+            kucBtn.style.justifyContent = 'center';
+            kucBtn.style.padding = window.getComputedStyle(findMatchBtn).padding;
+            if (!kucBtn.style.padding || kucBtn.style.padding === '0px') {
+                kucBtn.style.padding = '10px 20px';
+            }
+            kucBtn.style.borderRadius = window.getComputedStyle(findMatchBtn).borderRadius || '6px';
+            kucBtn.style.border = window.getComputedStyle(findMatchBtn).border;
+            kucBtn.style.fontWeight = 'bold';
+            kucBtn.style.fontSize = window.getComputedStyle(findMatchBtn).fontSize || '18px';
+            kucBtn.style.boxSizing = 'border-box';
+            
+            kucBtn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 launchRanked();
             };
             
-            // ボタンのホバー効果
-            btn.onmouseenter = () => { btn.style.backgroundColor = '#f97316'; };
-            btn.onmouseleave = () => { btn.style.backgroundColor = '#ea580c'; };
+            // Hover effect
+            kucBtn.onmouseenter = () => { kucBtn.style.backgroundColor = '#f97316'; };
+            kucBtn.onmouseleave = () => { kucBtn.style.backgroundColor = '#ea580c'; };
             
-            if (windowHolder) {
-                windowHolder.appendChild(btn);
-            } else {
-                document.body.appendChild(btn);
+            // Insert it right after the FIND MATCH button
+            if (findMatchBtn.parentNode) {
+                findMatchBtn.parentNode.insertBefore(kucBtn, findMatchBtn.nextSibling);
+                // Ensure parent can fit both side-by-side
+                if (window.getComputedStyle(findMatchBtn.parentNode).display !== 'flex') {
+                    findMatchBtn.parentNode.style.display = 'flex';
+                    findMatchBtn.parentNode.style.justifyContent = 'center';
+                    findMatchBtn.parentNode.style.alignItems = 'center';
+                }
             }
         }
     } else {
-        let btn = document.getElementById('kuc-ranked-btn');
-        if (btn) btn.remove();
-    }
-}, 500);
-
-// Rankediframeがある場合への対応 (もしKrunkerがiframeでRankedを表示している場合)
-setInterval(() => {
-    let frames = document.querySelectorAll('iframe');
-    let hasRankedIframe = false;
-    let targetContainer = document.body;
-    
-    frames.forEach(f => {
-        if (f.src && (f.src.includes('ranked') || f.src.includes('matchmaking'))) {
-            hasRankedIframe = true;
-            targetContainer = f.parentElement;
-        }
-    });
-    
-    if (hasRankedIframe) {
-        if (!document.getElementById('kuc-ranked-iframe-btn')) {
-            let btn = document.createElement('div');
-            btn.id = 'kuc-ranked-iframe-btn';
-            btn.innerHTML = 'Open KUC Ranked 🚀';
-            btn.style.position = 'absolute';
-            btn.style.right = '50px';
-            btn.style.top = '50px';
-            btn.style.zIndex = '999999';
-            btn.style.backgroundColor = '#ea580c';
-            btn.style.color = 'white';
-            btn.style.border = '3px solid #000';
-            btn.style.borderRadius = '6px';
-            btn.style.padding = '10px 20px';
-            btn.style.fontSize = '18px';
-            btn.style.cursor = 'pointer';
-            btn.onclick = () => {
-                launchRanked();
-            };
-            targetContainer.appendChild(btn);
-        }
-    } else {
-        let btn = document.getElementById('kuc-ranked-iframe-btn');
-        if (btn) btn.remove();
+        // If FIND MATCH button disappears (e.g. window closed), remove ours
+        let kucBtn = document.getElementById('kuc-ranked-btn');
+        if (kucBtn) kucBtn.remove();
     }
 }, 500);
