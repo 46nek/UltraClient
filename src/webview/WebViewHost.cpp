@@ -160,6 +160,7 @@ void WebViewHost::InitAsync(const WebViewConfig& config,
                             // Load userscripts via AddScriptToExecuteOnDocumentCreated
                             if (m_config.enableUserscripts && !m_config.scriptsDir.empty()) {
                                 for (const auto& f : ListFiles(m_config.scriptsDir, L".js")) {
+                                    if (f.find(L"ranked_overlay.js") != std::wstring::npos) continue; // Skip ranked overlay here
                                     std::wstring script = ReadFileContent(f);
                                     if (!script.empty()) {
                                         // Wrap in IIFE for scope isolation
@@ -170,7 +171,14 @@ void WebViewHost::InitAsync(const WebViewConfig& config,
                                 }
                             }
 
-
+                            if (m_config.isAltWindow) {
+                                std::wstring script = ReadFileContent(GetExeDir() + L"\\scripts\\ranked_overlay.js");
+                                if (!script.empty()) {
+                                    std::wstring wrapped = L"(function(){" + script + L"})();";
+                                    m_webview->AddScriptToExecuteOnDocumentCreated(wrapped.c_str(), nullptr);
+                                    LOG_INFO("WebViewHost: Registered ranked overlay for Alt Window.");
+                                }
+                            }
                             m_ready = true;
                             LOG_INFO("WebViewHost: Controller ready.");
 

@@ -265,9 +265,9 @@ bool App::Init(HINSTANCE hInstance) {
     {
         window::WindowConfig wConfig;
         wConfig.title      = isAltWindow ? L"Krunker Ultra Client (Alt / Ranked)" : L"Krunker Ultra Client";
-        wConfig.width      = 1280;
-        wConfig.height     = 720;
-        wConfig.fullscreen = cfg.extension.startFullscreen;
+        wConfig.width      = isAltWindow ? 450 : 1280;
+        wConfig.height     = isAltWindow ? 350 : 720;
+        wConfig.fullscreen = isAltWindow ? false : cfg.extension.startFullscreen;
         wConfig.icon       = ::LoadIconW(::GetModuleHandleW(nullptr), MAKEINTRESOURCEW(IDI_ICON1));
 
         if (!window::WindowManager::Instance().Create(wConfig)) {
@@ -296,6 +296,7 @@ bool App::Init(HINSTANCE hInstance) {
         wvConfig.blockAds                    = cfg.extension.blockAds;
         wvConfig.enableSwapper               = cfg.extension.enableSwapper;
         wvConfig.enableUserscripts           = cfg.extension.enableUserscripts;
+        wvConfig.isAltWindow                 = isAltWindow;
         wvConfig.swapperDir                  = swapperDir;
         wvConfig.scriptsDir                  = scriptsDir;
 

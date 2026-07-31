@@ -38,6 +38,7 @@ struct WebViewConfig {
     bool         blockAds                  = false;
     bool         enableSwapper             = true;
     bool         enableUserscripts         = true;
+    bool         isAltWindow               = false;
     std::wstring swapperDir;
     std::wstring scriptsDir;
 };
