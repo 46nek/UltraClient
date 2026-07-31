@@ -362,11 +362,9 @@ bool App::Init(HINSTANCE hInstance) {
                     });
 
                     if (isAltWindow) {
-                        std::wstring rankedUrl = L"file:///" + GetExeDir() + L"/ui/ranked.html";
-                        // Convert backslashes to forward slashes for URL
-                        std::replace(rankedUrl.begin(), rankedUrl.end(), L'\\', L'/');
+                        std::wstring rankedUrl = L"https://krunker.io/kuc_ranked.html";
                         webview::WebViewHost::Instance().Navigate(rankedUrl);
-                        LOG_INFO("App: WebView2 ready. Navigated to local ranked.html");
+                        LOG_INFO("App: WebView2 ready. Navigated to local ranked.html (via intercept)");
                     } else {
                         webview::WebViewHost::Instance().Navigate(L"https://krunker.io");
                         LOG_INFO("App: WebView2 ready. Navigated to krunker.io");

@@ -238,6 +238,7 @@ void WebViewHost::RegisterEvents() {
         // WebSocket (COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL) は絶対に触らない。
         // ALLを使うとゲーム中の全ネットワーク通信がこのコールバックを通り、Ping蹛ね上がりの原因になる。
         const COREWEBVIEW2_WEB_RESOURCE_CONTEXT contexts[] = {
+            COREWEBVIEW2_WEB_RESOURCE_CONTEXT_DOCUMENT,
             COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT,
             COREWEBVIEW2_WEB_RESOURCE_CONTEXT_XML_HTTP_REQUEST,
             COREWEBVIEW2_WEB_RESOURCE_CONTEXT_FETCH,
@@ -261,6 +262,20 @@ void WebViewHost::RegisterEvents() {
                     if (urlW) {
                         std::string url = util::WideToUtf8(urlW);
                         ::CoTaskMemFree(urlW);
+                        if (url == "https://krunker.io/kuc_ranked.html") {
+                            std::wstring localPath = GetExeDir() + L"\\ui\\ranked.html";
+                            IStream* stream = nullptr;
+                            HRESULT hr = ::SHCreateStreamOnFileEx(localPath.c_str(), 
+                                STGM_READ | STGM_SHARE_DENY_WRITE, 0, FALSE, nullptr, &stream);
+                            if (SUCCEEDED(hr) && stream) {
+                                Microsoft::WRL::ComPtr<ICoreWebView2WebResourceResponse> response;
+                                m_environment->CreateWebResourceResponse(
+                                    stream, 200, L"OK", L"Content-Type: text/html", &response);
+                                args->put_Response(response.Get());
+                                stream->Release();
+                            }
+                            return S_OK;
+                        }
 
                         FilterAction action = ResourceFilter::Instance().Evaluate(url);
                         if (action == FilterAction::Swap) {
