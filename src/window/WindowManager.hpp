@@ -44,6 +44,12 @@ public:
     void SetFullscreen(bool fullscreen);
     bool IsFullscreen() const { return m_isFullscreen; }
 
+    // リサイズコールバック
+    void SetWebViewResizeCallback(std::function<void(int, int)> cb) { m_resizeCb = cb; }
+
+    // IPC(WM_COPYDATA)コールバック
+    void SetCopyDataCallback(std::function<void(const std::string&)> cb) { m_copyDataCb = cb; }
+
     // ウィンドウハンドル取得
     HWND GetHwnd() const { return m_hwnd; }
 
@@ -72,16 +78,15 @@ private:
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
     HWND     m_hwnd         = nullptr;
-    bool     m_isFullscreen = false;
+    bool             m_isFullscreen = false;
+    DWORD            m_savedStyle   = 0;
+    WINDOWPLACEMENT  m_savedPlacement = {};
 
-    // フルスクリーン切り替え前のウィンドウ状態保存
-    WINDOWPLACEMENT m_savedPlacement = { sizeof(WINDOWPLACEMENT) };
-    DWORD           m_savedStyle     = 0;
+    std::function<void(int, int)> m_resizeCb;
+    std::function<void(const std::string&)> m_copyDataCb;
 
-    HWND            m_hSplash        = nullptr;
-    HBITMAP         m_hSplashBmp     = nullptr;
-
-    std::function<void(int w, int h)> m_resizeCb;
+    HBITMAP          m_hSplashBmp = nullptr;
+    HWND             m_hSplash    = nullptr;
 };
 
 } // namespace window

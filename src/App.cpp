@@ -305,8 +305,13 @@ bool App::Init(HINSTANCE hInstance) {
                 webview::WebViewHost::Instance().Resize(w, h);
             });
 
+        window::WindowManager::Instance().SetCopyDataCallback([](const std::string& msg) {
+            // Forward IPC from other windows to this window's WebView
+            webview::WebViewHost::Instance().PostMessage(msg);
+        });
+
         webview::WebViewHost::Instance().InitAsync(wvConfig,
-            [this, highPriority = cfg.process.highPriority](bool success) {
+            [this, highPriority = cfg.process.highPriority, isAltWindow](bool success) {
                 if (success) {
                     // メッセージ受信コールバック
                     webview::WebViewHost::Instance().SetMessageCallback([](const std::wstring& msg) {
@@ -328,12 +333,40 @@ bool App::Init(HINSTANCE hInstance) {
                             } else if (type == "openAltWindow") {
                                 std::wstring exePath = GetExeDir() + L"\\KrunkerUltraClient.exe";
                                 ::ShellExecuteW(nullptr, L"open", exePath.c_str(), L"--alt-window", nullptr, SW_SHOWNORMAL);
+                            } else if (type == "forwardIpcToMain") {
+                                // Send IPC from Alt Window to Main Window
+                                HWND hMain = ::FindWindowW(L"KrunkerUltraClientWnd", L"Krunker Ultra Client");
+                                if (hMain) {
+                                    COPYDATASTRUCT cds;
+                                    cds.dwData = 1;
+                                    cds.cbData = utf8Msg.size() + 1;
+                                    cds.lpData = (PVOID)utf8Msg.c_str();
+                                    ::SendMessageW(hMain, WM_COPYDATA, 0, (LPARAM)&cds);
+                                }
+                            } else if (type == "forwardIpcToAlt") {
+                                // Send IPC from Main Window to Alt Window
+                                HWND hAlt = ::FindWindowW(L"KrunkerUltraClientWnd", L"Krunker Ultra Client (Alt / Ranked)");
+                                if (hAlt) {
+                                    COPYDATASTRUCT cds;
+                                    cds.dwData = 1;
+                                    cds.cbData = utf8Msg.size() + 1;
+                                    cds.lpData = (PVOID)utf8Msg.c_str();
+                                    ::SendMessageW(hAlt, WM_COPYDATA, 0, (LPARAM)&cds);
+                                }
                             }
                         }
                     });
 
-                    webview::WebViewHost::Instance().Navigate(L"https://krunker.io");
-                    LOG_INFO("App: WebView2 ready. Navigated to krunker.io");
+                    if (isAltWindow) {
+                        std::wstring rankedUrl = L"file:///" + GetExeDir() + L"/ui/ranked.html";
+                        // Convert backslashes to forward slashes for URL
+                        std::replace(rankedUrl.begin(), rankedUrl.end(), L'\\', L'/');
+                        webview::WebViewHost::Instance().Navigate(rankedUrl);
+                        LOG_INFO("App: WebView2 ready. Navigated to local ranked.html");
+                    } else {
+                        webview::WebViewHost::Instance().Navigate(L"https://krunker.io");
+                        LOG_INFO("App: WebView2 ready. Navigated to krunker.io");
+                    }
 
                     // 管理者権限不足の通知を遅延送信
                     if (m_pendingAdminNotify) {

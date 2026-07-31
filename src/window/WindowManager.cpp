@@ -44,6 +44,15 @@ LRESULT CALLBACK WindowManager::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
         }
         return 0;
 
+    case WM_COPYDATA: {
+        COPYDATASTRUCT* pcds = reinterpret_cast<COPYDATASTRUCT*>(lParam);
+        if (pcds->dwData == 1 && wm.m_copyDataCb) {
+            std::string msg(static_cast<const char*>(pcds->lpData), pcds->cbData - 1);
+            wm.m_copyDataCb(msg);
+        }
+        return TRUE;
+    }
+
     case WM_DESTROY:
         ::PostQuitMessage(0);
         return 0;
