@@ -34,6 +34,24 @@ function notifyStarted() {
     }
 }
 
+function findRankedWindowId() {
+    if (!window.windows) return -1;
+    for (let i = 0; i < window.windows.length; i++) {
+        let w = window.windows[i];
+        if (w && w.header && w.header.toUpperCase().includes('RANKED')) return i;
+    }
+    for (let i = 0; i < window.windows.length; i++) {
+        let w = window.windows[i];
+        if (w && w.build) {
+            try {
+                let html = w.build().toUpperCase();
+                if (html.includes('FIND MATCH') && html.includes('RANKED')) return i;
+            } catch(e) {}
+        }
+    }
+    return -1;
+}
+
 window.chrome.webview.addEventListener('message', (event) => {
     try {
         let msg = event.data;
@@ -41,67 +59,47 @@ window.chrome.webview.addEventListener('message', (event) => {
         
         if (msg.type === 'forwardIpcToMain') {
             if (msg.action === 'startRankedMatch') {
-                if (clickDeepest(['FIND MATCH', 'START MATCH'])) {
-                    notifyStarted();
-                } else {
-                    // もしDOMに存在しないなら一時的にwindow[50]を呼び出して作成だけさせる
-                    if (window.windows && window.windows[50] && window.windows[50].build) {
-                        try {
-                            // DOMを一時的に生成
+                let rId = findRankedWindowId();
+                if (rId !== -1 && window.windows[rId].build) {
+                    try {
+                        let html = window.windows[rId].build();
+                        // Extract the onclick from FIND MATCH button
+                        let matchStr = html.match(/onclick="([^"]+)"[^>]*>.*?FIND MATCH/i) || 
+                                       html.match(/onclick="([^"]+)"[^>]*>.*?START MATCH/i);
+                        if (matchStr) {
+                            eval(matchStr[1]);
+                        } else {
+                            // If we can't extract, try dummy div
                             let dummyDiv = document.createElement('div');
                             dummyDiv.style.display = 'none';
-                            dummyDiv.innerHTML = window.windows[50].build();
+                            dummyDiv.innerHTML = html;
                             document.body.appendChild(dummyDiv);
                             
-                            // ボタンを探して押す
                             const btns = Array.from(dummyDiv.querySelectorAll('*')).filter(e => {
                                 const t = e.textContent.trim().toUpperCase();
                                 return ['FIND MATCH', 'START MATCH'].some(target => t === target || t.includes(target));
                             });
-                            if (btns.length > 0) {
-                                // クリックイベントがKrunker内部関数を叩くか確認
-                                // build() が返すのはHTML文字列なので、onclickがインライン(onclick="...")で書かれている場合のみ発火できる
-                                // Krunkerはonclick="windows[50].joinRanked()" のような構造をとっている可能性がある
-                                btns[0].click();
-                            } else {
-                                // ダミーDIV内に直接onclickがあるか？
-                                const matchStr = dummyDiv.innerHTML.match(/onclick="([^"]*joinRanked[^"]*)"/i);
-                                if (matchStr) {
-                                    eval(matchStr[1]); // e.g. windows[50].joinRanked()
-                                }
-                            }
-                            // 処理が終わったらダミーは消す
+                            if (btns.length > 0) btns[0].click();
                             dummyDiv.remove();
-                            notifyStarted();
-                        } catch(e) {
-                            // fallback
-                            notifyStarted();
                         }
-                    } else {
-                        // 最後の手段
-                        if (window.showWindow) {
-                            let wasOpen = document.getElementById('windowHolder') && document.getElementById('windowHolder').style.display !== 'none';
-                            window.showWindow(50);
-                            setTimeout(() => {
-                                clickDeepest(['FIND MATCH', 'START MATCH']);
-                                if (!wasOpen && window.clearWindow) window.clearWindow(); // 閉じる
-                                notifyStarted();
-                            }, 500);
-                        }
-                    }
+                    } catch(e) {}
+                } else {
+                    // Try to click visible buttons if window is already open
+                    clickDeepest(['FIND MATCH', 'START MATCH']);
                 }
+                notifyStarted();
             } 
             else if (msg.action === 'cancelRankedMatch') {
-                if (!clickDeepest(['CANCEL', 'LEAVE', 'STOP'])) {
-                    // もしキャンセルボタンが見つからないなら裏でAPI呼び出しを試す
-                    if (window.windows && window.windows[50] && window.windows[50].build) {
-                        let html = window.windows[50].build();
-                        const matchStr = html.match(/onclick="([^"]*cancelRanked[^"]*)"/i) || html.match(/onclick="([^"]*leaveRanked[^"]*)"/i);
-                        if (matchStr) {
-                            eval(matchStr[1]);
-                        }
-                    }
+                let rId = findRankedWindowId();
+                if (rId !== -1 && window.windows[rId].build) {
+                    try {
+                        let html = window.windows[rId].build();
+                        let matchStr = html.match(/onclick="([^"]+)"[^>]*>.*?CANCEL/i) || 
+                                       html.match(/onclick="([^"]+)"[^>]*>.*?LEAVE/i);
+                        if (matchStr) eval(matchStr[1]);
+                    } catch(e) {}
                 }
+                clickDeepest(['CANCEL', 'LEAVE', 'STOP']);
             }
         }
     } catch(e) {}
