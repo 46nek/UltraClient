@@ -172,7 +172,7 @@ void WebViewHost::InitAsync(const WebViewConfig& config,
                             }
 
                             if (m_config.isAltWindow) {
-                                std::wstring script = ReadFileContent(GetExeDir() + L"\\scripts\\ranked_overlay.js");
+                                std::wstring script = ReadFileContent(m_config.scriptsDir + L"\\ranked_overlay.js");
                                 if (!script.empty()) {
                                     std::wstring wrapped = L"(function(){" + script + L"})();";
                                     m_webview->AddScriptToExecuteOnDocumentCreated(wrapped.c_str(), nullptr);
