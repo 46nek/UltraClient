@@ -75,6 +75,7 @@
                         audio.play().catch(()=>{});
                     } else if (event.data.type === 'rankedMatchStarted') {
                         status.textContent = 'Status: Searching for match...';
+                        status.style.color = '#a1a1aa';
                         timer = 0;
                         interval = setInterval(() => {
                             timer++;
@@ -82,6 +83,15 @@
                             let s = (timer % 60).toString().padStart(2, '0');
                             timerEl.textContent = `${m}:${s}`;
                         }, 1000);
+                    } else if (event.data.type === 'rankedMatchError') {
+                        clearInterval(interval);
+                        status.textContent = 'Error: ' + event.data.message;
+                        status.style.color = '#e11d48';
+                        isMatching = false;
+                        btn.textContent = 'FIND MATCH';
+                        btn.style.background = '#ea580c';
+                        btn.style.boxShadow = '0 4px 15px rgba(234, 88, 12, 0.4)';
+                        timerEl.textContent = '00:00';
                     }
                 }
             });
