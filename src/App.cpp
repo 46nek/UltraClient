@@ -331,30 +331,30 @@ bool App::Init(HINSTANCE hInstance) {
                             } else if (type == "openAltWindow") {
                                 std::wstring exePath = GetExeDir() + L"\\KrunkerUltraClient.exe";
                                 ::ShellExecuteW(nullptr, L"open", exePath.c_str(), L"--alt-window", nullptr, SW_SHOWNORMAL);
-                            } else if (type == "forwardIpcToMain") {
-                                // Send IPC from Alt Window to Main Window
-                                HWND hMain = ::FindWindowW(L"KrunkerUltraClientWnd", L"Krunker Ultra Client");
-                                if (hMain) {
-                                    COPYDATASTRUCT cds;
-                                    cds.dwData = 1;
-                                    cds.cbData = utf8Msg.size() + 1;
-                                    cds.lpData = (PVOID)utf8Msg.c_str();
-                                    ::SendMessageW(hMain, WM_COPYDATA, 0, (LPARAM)&cds);
-                                }
-                            } else if (type == "openAltWindow") {
-                                // Launch a new instance with --alt-window flag
-                                std::wstring exePath = GetExeDir() + L"\\KrunkerUltraClient.exe";
-                                ::ShellExecuteW(nullptr, L"open", exePath.c_str(), L"--alt-window", nullptr, SW_SHOWNORMAL);
-                            } else if (type == "forwardIpcToAlt") {
-                                // Send IPC from Main Window to Alt Window
-                                HWND hAlt = ::FindWindowW(L"KrunkerUltraClientWnd", L"Krunker Ultra Client (Alt / Ranked)");
-                                if (hAlt) {
-                                    COPYDATASTRUCT cds;
-                                    cds.dwData = 1;
-                                    cds.cbData = utf8Msg.size() + 1;
-                                    cds.lpData = (PVOID)utf8Msg.c_str();
-                                    ::SendMessageW(hAlt, WM_COPYDATA, 0, (LPARAM)&cds);
-                                }
+                            } else if (type == "forwardIpcToMain" || type == "forwardIpcToAlt") {
+                                // Broadcast to all KrunkerUltraClientWnd windows to bypass dynamic title changes
+                                struct BroadcastCtx {
+                                    std::string msg;
+                                } ctx;
+                                ctx.msg = utf8Msg;
+                                
+                                ::EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
+                                    wchar_t className[256];
+                                    if (::GetClassNameW(hwnd, className, 256) > 0) {
+                                        if (wcscmp(className, L"KrunkerUltraClientWnd") == 0) {
+                                            BroadcastCtx* pCtx = (BroadcastCtx*)lParam;
+                                            COPYDATASTRUCT cds;
+                                            cds.dwData = 1;
+                                            cds.cbData = pCtx->msg.size() + 1;
+                                            cds.lpData = (PVOID)pCtx->msg.c_str();
+                                            // SendMessageTimeout to prevent hanging
+                                            DWORD_PTR result;
+                                            ::SendMessageTimeoutW(hwnd, WM_COPYDATA, 0, (LPARAM)&cds, SMTO_ABORTIFHUNG, 1000, &result);
+                                        }
+                                    }
+                                    return TRUE;
+                                }, (LPARAM)&ctx);
+                            }
                             }
                         }
                     });
