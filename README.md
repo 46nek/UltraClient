@@ -27,7 +27,7 @@
 
 ## 📥 ダウンロードと使い方 (Installation)
 
-1.  GitHubの **[Releases ページ](https://github.com/46nek/UltraClient/releases)** から、最新の `KrunkerUltraClient_vX.X.X.zip` をダウンロードします。
+1.  GitHubの **[Releases ページ](https://github.com/46nek/UltraClient/releases)** から、最新の `KrunkerUltraClient_vX.X.zip` をダウンロードします。
 2.  ダウンロードしたZIPファイルを右クリックし、「すべて展開」で任意のフォルダ（デスクトップなど）に解凍します。
 3.  解凍したフォルダ内にある `KrunkerUltraClient.exe` をダブルクリックして起動します。
     *   ※ TCPレジストリ最適化（通信遅延の極限化）を使用する場合は、exeファイルを右クリックして **「管理者として実行」** を選択してください。
