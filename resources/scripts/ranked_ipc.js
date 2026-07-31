@@ -2,6 +2,27 @@
 // Krunker Ultra Client - Main Window IPC Listener
 // ============================================================
 
+function clickButtonWithText(texts) {
+    const btns = Array.from(document.querySelectorAll('div, span, button, .menuItem')).filter(e => {
+        if (e.children.length > 1) return false; // Ignore containers
+        if (e.offsetParent === null) return false; // Must be visible
+        const t = e.textContent.trim().toUpperCase();
+        return texts.some(target => t === target || t.includes(target));
+    });
+    if (btns.length > 0) {
+        btns[btns.length - 1].click(); // Usually the most nested one is the actual button
+        return true;
+    }
+    return false;
+}
+
+function notifyStarted() {
+    window.chrome.webview.postMessage(JSON.stringify({
+        type: 'forwardIpcToAlt',
+        action: 'rankedMatchStarted'
+    }));
+}
+
 window.chrome.webview.addEventListener('message', (event) => {
     try {
         let msg = event.data;
@@ -9,22 +30,23 @@ window.chrome.webview.addEventListener('message', (event) => {
         
         if (msg.type === 'forwardIpcToMain') {
             if (msg.action === 'startRankedMatch') {
-                // KrunkerのUIを開いてボタンを自動クリック
-                if (window.showWindow) window.showWindow(50);
-                setTimeout(() => {
-                    const findBtns = Array.from(document.querySelectorAll('.button, div.button, .settingsBtn')).filter(e => 
-                        e.textContent.toUpperCase().includes('FIND MATCH') || 
-                        e.textContent.toUpperCase().includes('RANKED')
-                    );
-                    if (findBtns.length > 0) findBtns[findBtns.length - 1].click();
-                }, 500);
+                // まず FIND MATCH を探す
+                if (clickButtonWithText(['FIND MATCH', 'START MATCH'])) {
+                    notifyStarted();
+                } else {
+                    // なければRANKEDメニューを開く
+                    if (window.showWindow) window.showWindow(50);
+                    clickButtonWithText(['RANKED']);
+                    
+                    setTimeout(() => {
+                        if (clickButtonWithText(['FIND MATCH', 'START MATCH'])) {
+                            notifyStarted();
+                        }
+                    }, 1000);
+                }
             } 
             else if (msg.action === 'cancelRankedMatch') {
-                const cancelBtn = Array.from(document.querySelectorAll('.button, div.button')).find(e => 
-                    e.textContent.toUpperCase().includes('CANCEL') || 
-                    e.textContent.toUpperCase().includes('LEAVE')
-                );
-                if (cancelBtn) cancelBtn.click();
+                clickButtonWithText(['CANCEL', 'LEAVE', 'STOP']);
             }
         }
     } catch(e) {}
@@ -32,11 +54,14 @@ window.chrome.webview.addEventListener('message', (event) => {
 
 // マッチ完了を監視してAlt Windowへ通知
 setInterval(() => {
-    const rejoinBtn = Array.from(document.querySelectorAll('.button, div.button')).find(e => 
-        e.textContent.toUpperCase().includes('REJOIN') ||
-        e.textContent.toUpperCase().includes('MATCH FOUND')
-    );
-    if (rejoinBtn && !window.__kucMatchNotified) {
+    const isMatched = Array.from(document.querySelectorAll('*')).some(e => {
+        if (e.children.length > 0) return false;
+        if (e.offsetParent === null) return false;
+        const t = e.textContent.trim().toUpperCase();
+        return t === 'REJOIN' || t === 'MATCH FOUND!' || t === 'ACCEPT';
+    });
+
+    if (isMatched && !window.__kucMatchNotified) {
         window.__kucMatchNotified = true; // 重複送信防止
         window.chrome.webview.postMessage(JSON.stringify({
             type: 'forwardIpcToAlt',
