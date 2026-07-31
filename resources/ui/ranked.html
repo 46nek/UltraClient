@@ -217,25 +217,27 @@
             } else {
                 statusText.textContent = 'Status: Fetching Token...';
                 findMatchBtn.disabled = true;
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'forwardIpcToMain',
+                    action: 'getRankedToken'
+                }));
+            }
+        });
+        
+        window.chrome.webview.addEventListener('message', (event) => {
+            try {
+                let msg = event.data;
+                if (typeof msg === 'string') msg = JSON.parse(msg);
                 
-                try {
-                    let localToken = localStorage.getItem("__FRVR_auth_access_token");
-                    if (!localToken) {
-                        statusText.textContent = 'Status: Token not found. Please login to Krunker first.';
-                        resetUI();
-                        return;
-                    }
-                    
-                    localToken = localToken.replace(/"/g, "");
-                    localToken = localToken.replace(/\//g, ""); // Remove slashes
-                    
-                    token = localToken;
+                if (msg.action === 'rankedTokenResponse') {
+                    token = msg.token;
                     startWebSocketQueue();
-                } catch(e) {
-                    statusText.textContent = 'Status: Failed to access localStorage: ' + e.message;
+                } 
+                else if (msg.action === 'rankedMatchError') {
+                    statusText.textContent = 'Status: ' + msg.message;
                     resetUI();
                 }
-            }
+            } catch(e) {}
         });
         
     </script>

@@ -304,7 +304,6 @@ bool App::Init(HINSTANCE hInstance) {
             });
 
         window::WindowManager::Instance().SetCopyDataCallback([](const std::string& msg) {
-            LOG_INFO("App: Received IPC message via WM_COPYDATA: " + msg);
             // Forward IPC from other windows to this window's WebView
             webview::WebViewHost::Instance().PostMessage(msg);
         });
@@ -315,7 +314,6 @@ bool App::Init(HINSTANCE hInstance) {
                     // メッセージ受信コールバック
                     webview::WebViewHost::Instance().SetMessageCallback([](const std::wstring& msg) {
                         std::string utf8Msg = util::WideToUtf8(msg);
-                        LOG_INFO("App: Received WebMessage from WebView2: " + utf8Msg);
                         rapidjson::Document d;
                         d.Parse(utf8Msg.c_str());
                         if (!d.HasParseError() && d.HasMember("type") && d["type"].IsString()) {
@@ -351,8 +349,7 @@ bool App::Init(HINSTANCE hInstance) {
                                             cds.lpData = (PVOID)pCtx->msg.c_str();
                                             // SendMessageTimeout to prevent hanging
                                             DWORD_PTR result;
-                                            LRESULT ret = ::SendMessageTimeoutW(hwnd, WM_COPYDATA, 0, (LPARAM)&cds, SMTO_ABORTIFHUNG, 1000, &result);
-                                            LOG_INFO("App: Broadcast IPC to HWND " + std::to_string((unsigned long long)hwnd) + ", result: " + std::to_string(ret));
+                                            ::SendMessageTimeoutW(hwnd, WM_COPYDATA, 0, (LPARAM)&cds, SMTO_ABORTIFHUNG, 1000, &result);
                                         }
                                     }
                                     return TRUE;
@@ -362,9 +359,11 @@ bool App::Init(HINSTANCE hInstance) {
                     });
 
                     if (isAltWindow) {
-                        std::wstring rankedUrl = L"https://krunker.io/kuc_ranked.html";
+                        std::wstring rankedUrl = L"file:///" + GetExeDir() + L"/ui/ranked.html";
+                        // Convert backslashes to forward slashes for URL
+                        std::replace(rankedUrl.begin(), rankedUrl.end(), L'\\', L'/');
                         webview::WebViewHost::Instance().Navigate(rankedUrl);
-                        LOG_INFO("App: WebView2 ready. Navigated to local ranked.html (via intercept)");
+                        LOG_INFO("App: WebView2 ready. Navigated to local ranked.html");
                     } else {
                         webview::WebViewHost::Instance().Navigate(L"https://krunker.io");
                         LOG_INFO("App: WebView2 ready. Navigated to krunker.io");
