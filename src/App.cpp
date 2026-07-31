@@ -292,8 +292,8 @@ bool App::Init(HINSTANCE hInstance) {
         wvConfig.disableBackgroundThrottling = cfg.browser.disableBackgroundThrottling;
         wvConfig.mouseFlickFix               = cfg.browser.mouseFlickFix;
         wvConfig.blockAds                    = cfg.extension.blockAds;
-        wvConfig.enableSwapper               = cfg.extension.enableSwapper;
-        wvConfig.enableUserscripts           = cfg.extension.enableUserscripts;
+        wvConfig.enableSwapper               = isAltWindow ? false : cfg.extension.enableSwapper;
+        wvConfig.enableUserscripts           = isAltWindow ? false : cfg.extension.enableUserscripts;
         wvConfig.isAltWindow                 = isAltWindow;
         wvConfig.swapperDir                  = swapperDir;
         wvConfig.scriptsDir                  = scriptsDir;
