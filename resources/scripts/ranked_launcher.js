@@ -28,6 +28,11 @@ function findFindMatchButton() {
 }
 
 setInterval(() => {
+    // Prevent injecting the button into our own Alt Window (kuc_ranked.html)
+    if (window.location.href.includes('kuc_ranked')) {
+        return;
+    }
+    
     let findMatchBtn = findFindMatchButton();
     
     if (findMatchBtn) {
@@ -38,7 +43,7 @@ setInterval(() => {
             // Try to copy Krunker's button classes to blend in
             kucBtn.className = findMatchBtn.className; 
             
-            kucBtn.innerHTML = 'KUC Fast Queue 🚀';
+            kucBtn.innerHTML = 'KUC QUEUE';
             
             // Apply inline styles to make it stand out and look good
             kucBtn.style.backgroundColor = '#ea580c';
