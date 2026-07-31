@@ -217,10 +217,10 @@
             } else {
                 statusText.textContent = 'Status: Fetching Token...';
                 findMatchBtn.disabled = true;
-                window.chrome.webview.postMessage(JSON.stringify({
+                window.chrome.webview.postMessage({
                     type: 'forwardIpcToMain',
                     action: 'getRankedToken'
-                }));
+                });
             }
         });
         

@@ -304,6 +304,7 @@ bool App::Init(HINSTANCE hInstance) {
             });
 
         window::WindowManager::Instance().SetCopyDataCallback([](const std::string& msg) {
+            LOG_INFO("App: Received IPC message via WM_COPYDATA: " + msg);
             // Forward IPC from other windows to this window's WebView
             webview::WebViewHost::Instance().PostMessage(msg);
         });
@@ -314,6 +315,7 @@ bool App::Init(HINSTANCE hInstance) {
                     // メッセージ受信コールバック
                     webview::WebViewHost::Instance().SetMessageCallback([](const std::wstring& msg) {
                         std::string utf8Msg = util::WideToUtf8(msg);
+                        LOG_INFO("App: Received WebMessage from WebView2: " + utf8Msg);
                         rapidjson::Document d;
                         d.Parse(utf8Msg.c_str());
                         if (!d.HasParseError() && d.HasMember("type") && d["type"].IsString()) {
@@ -349,7 +351,8 @@ bool App::Init(HINSTANCE hInstance) {
                                             cds.lpData = (PVOID)pCtx->msg.c_str();
                                             // SendMessageTimeout to prevent hanging
                                             DWORD_PTR result;
-                                            ::SendMessageTimeoutW(hwnd, WM_COPYDATA, 0, (LPARAM)&cds, SMTO_ABORTIFHUNG, 1000, &result);
+                                            LRESULT ret = ::SendMessageTimeoutW(hwnd, WM_COPYDATA, 0, (LPARAM)&cds, SMTO_ABORTIFHUNG, 1000, &result);
+                                            LOG_INFO("App: Broadcast IPC to HWND " + std::to_string((unsigned long long)hwnd) + ", result: " + std::to_string(ret));
                                         }
                                     }
                                     return TRUE;
