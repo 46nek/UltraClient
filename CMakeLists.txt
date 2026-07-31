@@ -49,7 +49,7 @@ set(SOURCES
     src/webview/WebViewHost.cpp
     src/webview/ResourceFilter.cpp
     src/process/ProcessManager.cpp
-    src/network/NetworkOptimizer.cpp
+
     src/settings/Settings.cpp
     src/util/Logger.cpp
     src/dxgi_hook/latency_optimizer.cpp

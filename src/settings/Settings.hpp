@@ -35,7 +35,6 @@ struct BrowserConfig {
 // ============================================================
 struct NetworkConfig {
     bool disableNagle     = true;   // TCP_NODELAY (即時適用)
-    bool applyTcpRegistry = false;  // TCPレジストリ最適化 (管理者権限必須)
 };
 
 // ============================================================

@@ -97,11 +97,6 @@
             '細かいデータをまとめる処理を省いて即座に送信します。FPSゲームのPing改善に有効です。',
             true)}
 
-          ${makeToggleRow('kuc-nw-tcpreg',
-            'TCPレジストリ最適化を適用する',
-            'Windowsの内部設定（TcpAckFrequency, TCPNoDelay）を直接書き換えます。適用には管理者権限が必要です。',
-            false)}
-
           <p class="kuc-section-title" style="margin-top:20px;">その他</p>
           ${makeToggleRow('kuc-ex-fullscreen',
             '起動時にフルスクリーンにする',

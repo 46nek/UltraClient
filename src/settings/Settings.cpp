@@ -49,8 +49,6 @@ static void ParseBrowser(const rapidjson::Value& v, BrowserConfig& b) {
 static void ParseNetwork(const rapidjson::Value& v, NetworkConfig& n) {
     if (v.HasMember("disableNagle") && v["disableNagle"].IsBool())
         n.disableNagle = v["disableNagle"].GetBool();
-    if (v.HasMember("applyTcpRegistry") && v["applyTcpRegistry"].IsBool())
-        n.applyTcpRegistry = v["applyTcpRegistry"].GetBool();
 }
 
 static void ParseExtension(const rapidjson::Value& v, ExtensionConfig& e) {
@@ -130,7 +128,6 @@ bool SettingsManager::Save() const {
     {
         const auto& n = m_settings.network;
         w.Key("disableNagle");     w.Bool(n.disableNagle);
-        w.Key("applyTcpRegistry"); w.Bool(n.applyTcpRegistry);
     }
     w.EndObject();
 

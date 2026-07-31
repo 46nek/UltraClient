@@ -7,7 +7,7 @@
 #include "util/Logger.hpp"
 #include "settings/Settings.hpp"
 #include "process/ProcessManager.hpp"
-#include "network/NetworkOptimizer.hpp"
+
 #include "window/WindowManager.hpp"
 #include "webview/WebViewHost.hpp"
 #include "webview/ResourceFilter.hpp"
@@ -164,16 +164,6 @@ static void HandleSaveSettings(const rapidjson::Document& d) {
     // 広告ブロック
     if (cfg.extension.blockAds)
         webview::ResourceFilter::Instance().LoadDefaultRules();
-
-    // TCPレジストリ最適化 (管理者権限が必要 → ユーザーに確認を求める)
-    if (cfg.network.applyTcpRegistry) {
-        // UAC昇格してregeditを呼ぶ代わりに、ShellExecute で runas を使い
-        // 同じexeを管理者として再実行して適用する簡易実装
-        // ここでは警告メッセージをUIに返す
-        std::string msg = R"({"type":"adminRequired","message":"TCPレジストリ最適化を適用するには管理者権限が必要です。クライアントを右クリック→「管理者として実行」で起動してください。"})";
-        webview::WebViewHost::Instance().PostMessage(msg);
-        LOG_INFO("App: Notified UI that admin rights are required for TCP registry.");
-    }
 }
 
 // ============================================================
@@ -245,15 +235,7 @@ bool App::Init(HINSTANCE hInstance) {
     // =========================================
     // 4. TCP最適化
     // =========================================
-    if (cfg.network.applyTcpRegistry) {
-        auto& no = network::NetworkOptimizer::Instance();
-        auto result = no.ApplyTcpOptimizations(true, true);
-        if (!result.success && result.adminRequired) {
-            LOG_WARN("TCP optimization skipped: requires administrator privileges.");
-            // UIへの通知はWebView2初期化後に行う
-            m_pendingAdminNotify = true;
-        }
-    }
+
 
     if (cfg.network.disableNagle) {
         ApplyNagleDisable();
