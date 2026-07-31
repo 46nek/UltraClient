@@ -2,13 +2,10 @@
 // Krunker Ultra Client - Main Window IPC Listener
 // ============================================================
 
-function clickDeepestVisible(texts) {
+function clickDeepest(texts) {
     const btns = Array.from(document.querySelectorAll('*')).filter(e => {
         const t = e.textContent.trim().toUpperCase();
-        if (!texts.some(target => t === target || t.includes(target))) return false;
-        const rect = e.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0 || rect.width > window.innerWidth * 0.8) return false;
-        return true;
+        return texts.some(target => t === target || t.includes(target));
     });
 
     let deepest = null;
@@ -44,31 +41,67 @@ window.chrome.webview.addEventListener('message', (event) => {
         
         if (msg.type === 'forwardIpcToMain') {
             if (msg.action === 'startRankedMatch') {
-                if (document.pointerLockElement) document.exitPointerLock();
-                
-                setTimeout(() => {
-                    if (clickDeepestVisible(['FIND MATCH', 'START MATCH'])) {
-                        notifyStarted();
-                    } else {
-                        if (window.showWindow) window.showWindow(50);
-                        clickDeepestVisible(['RANKED']);
-                        
-                        setTimeout(() => {
-                            if (clickDeepestVisible(['FIND MATCH', 'START MATCH'])) {
-                                notifyStarted();
+                if (clickDeepest(['FIND MATCH', 'START MATCH'])) {
+                    notifyStarted();
+                } else {
+                    // もしDOMに存在しないなら一時的にwindow[50]を呼び出して作成だけさせる
+                    if (window.windows && window.windows[50] && window.windows[50].build) {
+                        try {
+                            // DOMを一時的に生成
+                            let dummyDiv = document.createElement('div');
+                            dummyDiv.style.display = 'none';
+                            dummyDiv.innerHTML = window.windows[50].build();
+                            document.body.appendChild(dummyDiv);
+                            
+                            // ボタンを探して押す
+                            const btns = Array.from(dummyDiv.querySelectorAll('*')).filter(e => {
+                                const t = e.textContent.trim().toUpperCase();
+                                return ['FIND MATCH', 'START MATCH'].some(target => t === target || t.includes(target));
+                            });
+                            if (btns.length > 0) {
+                                // クリックイベントがKrunker内部関数を叩くか確認
+                                // build() が返すのはHTML文字列なので、onclickがインライン(onclick="...")で書かれている場合のみ発火できる
+                                // Krunkerはonclick="windows[50].joinRanked()" のような構造をとっている可能性がある
+                                btns[0].click();
                             } else {
-                                // 強制的に開始を通知（UIが存在しなくても裏でAPIを叩く前提の場合）
-                                notifyStarted();
+                                // ダミーDIV内に直接onclickがあるか？
+                                const matchStr = dummyDiv.innerHTML.match(/onclick="([^"]*joinRanked[^"]*)"/i);
+                                if (matchStr) {
+                                    eval(matchStr[1]); // e.g. windows[50].joinRanked()
+                                }
                             }
-                        }, 1000);
+                            // 処理が終わったらダミーは消す
+                            dummyDiv.remove();
+                            notifyStarted();
+                        } catch(e) {
+                            // fallback
+                            notifyStarted();
+                        }
+                    } else {
+                        // 最後の手段
+                        if (window.showWindow) {
+                            let wasOpen = document.getElementById('windowHolder') && document.getElementById('windowHolder').style.display !== 'none';
+                            window.showWindow(50);
+                            setTimeout(() => {
+                                clickDeepest(['FIND MATCH', 'START MATCH']);
+                                if (!wasOpen && window.clearWindow) window.clearWindow(); // 閉じる
+                                notifyStarted();
+                            }, 500);
+                        }
                     }
-                }, 100);
+                }
             } 
             else if (msg.action === 'cancelRankedMatch') {
-                if (document.pointerLockElement) document.exitPointerLock();
-                setTimeout(() => {
-                    clickDeepestVisible(['CANCEL', 'LEAVE', 'STOP']);
-                }, 100);
+                if (!clickDeepest(['CANCEL', 'LEAVE', 'STOP'])) {
+                    // もしキャンセルボタンが見つからないなら裏でAPI呼び出しを試す
+                    if (window.windows && window.windows[50] && window.windows[50].build) {
+                        let html = window.windows[50].build();
+                        const matchStr = html.match(/onclick="([^"]*cancelRanked[^"]*)"/i) || html.match(/onclick="([^"]*leaveRanked[^"]*)"/i);
+                        if (matchStr) {
+                            eval(matchStr[1]);
+                        }
+                    }
+                }
             }
         }
     } catch(e) {}
