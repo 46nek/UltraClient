@@ -169,6 +169,18 @@ static void HandleSaveSettings(const rapidjson::Document& d) {
 bool App::Init(HINSTANCE hInstance) {
     m_hInstance = hInstance;
 
+    bool isAltWindow = false;
+    int argc = 0;
+    if (LPWSTR* argv = ::CommandLineToArgvW(::GetCommandLineW(), &argc)) {
+        for (int i = 0; i < argc; ++i) {
+            if (std::wstring(argv[i]) == L"--alt-window") {
+                isAltWindow = true;
+                break;
+            }
+        }
+        ::LocalFree(argv);
+    }
+
     // Winsock初期化
     WSADATA wsaData;
     ::WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -252,7 +264,7 @@ bool App::Init(HINSTANCE hInstance) {
     // =========================================
     {
         window::WindowConfig wConfig;
-        wConfig.title      = L"Krunker Ultra Client";
+        wConfig.title      = isAltWindow ? L"Krunker Ultra Client (Alt / Ranked)" : L"Krunker Ultra Client";
         wConfig.width      = 1280;
         wConfig.height     = 720;
         wConfig.fullscreen = cfg.extension.startFullscreen;
@@ -312,6 +324,9 @@ bool App::Init(HINSTANCE hInstance) {
                                     std::wstring path = GetExeDir() + L"\\" + folder;
                                     ::ShellExecuteW(nullptr, L"open", path.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
                                 }
+                            } else if (type == "openAltWindow") {
+                                std::wstring exePath = GetExeDir() + L"\\KrunkerUltraClient.exe";
+                                ::ShellExecuteW(nullptr, L"open", exePath.c_str(), L"--alt-window", nullptr, SW_SHOWNORMAL);
                             }
                         }
                     });

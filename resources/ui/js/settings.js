@@ -102,6 +102,12 @@
             '起動時にフルスクリーンにする',
             '次回起動時に自動的に全画面で開始します。',
             false)}
+
+          <div class="kuc-setting-row" style="margin-top:12px;">
+            <button class="kuc-btn kuc-btn--primary" id="kuc-open-alt-window" style="width:100%; text-align:center;">
+              サブウィンドウを開く (Ranked待機用 / ショートカット: F7)
+            </button>
+          </div>
         </div>
 
       </div><!-- /settings-content -->
@@ -187,6 +193,9 @@
   });
   document.getElementById('kuc-open-scripts')?.addEventListener('click', () => {
     sendMessage({ type: 'openFolder', folder: 'scripts' });
+  });
+  document.getElementById('kuc-open-alt-window')?.addEventListener('click', () => {
+    sendMessage({ type: 'openAltWindow' });
   });
 
   document.getElementById('kuc-settings-save')?.addEventListener('click', function () {

@@ -14,7 +14,15 @@
       // 選択中のリージョンで最も人数が多い(空きがある)最適なマッチに自動的に移動します。
       location.href = "/";
     }
+
+    if (e.key === "F7") {
+      e.preventDefault();
+      console.log("[KUC] F7 pressed: Opening Alt Window...");
+      if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage(JSON.stringify({ type: 'openAltWindow' }));
+      }
+    }
   });
 
-  console.log('[KUC] hotkeys.js loaded. Press F6 to find a new match.');
+  console.log('[KUC] hotkeys.js loaded. Press F6 to find a new match, F7 to open Alt Window.');
 })();
