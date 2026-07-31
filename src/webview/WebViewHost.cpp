@@ -157,10 +157,22 @@ void WebViewHost::InitAsync(const WebViewConfig& config,
 
                             RegisterEvents();
 
+                            // Always inject ranked_ipc.js (core feature)
+                            if (!m_config.scriptsDir.empty()) {
+                                std::wstring ipcScriptPath = m_config.scriptsDir + L"\\ranked_ipc.js";
+                                std::wstring ipcScript = ReadFileContent(ipcScriptPath);
+                                if (!ipcScript.empty()) {
+                                    std::wstring wrapped = L"(function(){" + ipcScript + L"})();";
+                                    m_webview->AddScriptToExecuteOnDocumentCreated(wrapped.c_str(), nullptr);
+                                }
+                            }
+
                             // Load userscripts via AddScriptToExecuteOnDocumentCreated
                             if (m_config.enableUserscripts && !m_config.scriptsDir.empty()) {
                                 for (const auto& f : ListFiles(m_config.scriptsDir, L".js")) {
-                                    if (f.find(L"ranked_overlay.js") != std::wstring::npos) continue; // Skip ranked overlay here
+                                    if (f.find(L"ranked_overlay.js") != std::wstring::npos) continue; 
+                                    if (f.find(L"ranked_ipc.js") != std::wstring::npos) continue; // Skip here as we loaded it above
+                                    
                                     std::wstring script = ReadFileContent(f);
                                     if (!script.empty()) {
                                         // Wrap in IIFE for scope isolation
