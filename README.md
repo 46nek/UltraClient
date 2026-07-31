@@ -48,4 +48,3 @@ Windows環境と Visual Studio 2022 (C++ ワークロード) が必要です。
 *   TCPレジストリ最適化機能を使用する場合は、クライアントを「管理者として実行」する必要があります。
 
 ---
-*Created by [Your Name or Community]*
