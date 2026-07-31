@@ -59,11 +59,6 @@ public:
     // WebView2が占有する領域をウィンドウサイズに同期
     void ResizeWebView();
 
-    // WebView2のHWNDを登録 (リサイズ連動のため)
-    void SetWebViewResizeCallback(std::function<void(int w, int h)> cb) {
-        m_resizeCb = std::move(cb);
-    }
-
     // スプラッシュスクリーンの表示・非表示
     void ShowSplashScreen();
     void HideSplashScreen();

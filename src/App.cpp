@@ -282,8 +282,6 @@ bool App::Init(HINSTANCE hInstance) {
     // 7. WebView2初期化
     // =========================================
     {
-        std::wstring exeDir = GetExeDir();
-
         webview::WebViewConfig wvConfig;
         wvConfig.hwnd                        = hwnd;
         wvConfig.userDataFolder              = exeDir + L"\\WebViewData";
