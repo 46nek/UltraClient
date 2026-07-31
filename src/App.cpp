@@ -84,7 +84,6 @@ static void SendSettingsToUI() {
       w.EndObject();
       w.Key("network"); w.StartObject();
         w.Key("disableNagle");     w.Bool(cfg.network.disableNagle);
-        w.Key("applyTcpRegistry"); w.Bool(cfg.network.applyTcpRegistry);
       w.EndObject();
       w.Key("extension"); w.StartObject();
         w.Key("blockAds");        w.Bool(cfg.extension.blockAds);
@@ -130,8 +129,6 @@ static void HandleSaveSettings(const rapidjson::Document& d) {
         const auto& n = s["network"];
         if (n.HasMember("disableNagle") && n["disableNagle"].IsBool())
             cfg.network.disableNagle = n["disableNagle"].GetBool();
-        if (n.HasMember("applyTcpRegistry") && n["applyTcpRegistry"].IsBool())
-            cfg.network.applyTcpRegistry = n["applyTcpRegistry"].GetBool();
     }
     if (s.HasMember("extension") && s["extension"].IsObject()) {
         const auto& e = s["extension"];
