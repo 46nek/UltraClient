@@ -28,8 +28,8 @@ function findFindMatchButton() {
 }
 
 setInterval(() => {
-    // Prevent injecting the button into our own Alt Window (kuc_ranked.html)
-    if (window.location.href.includes('kuc_ranked')) {
+    // Prevent injecting the button into our own Alt Window (ranked.html via file:///)
+    if (window.location.href.startsWith('file:') && window.location.href.includes('ranked.html')) {
         return;
     }
     
