@@ -264,7 +264,7 @@ void WebViewHost::RegisterEvents() {
                         std::string url = util::WideToUtf8(urlW);
                         ::CoTaskMemFree(urlW);
                         if (url == "https://krunker.io/kuc_ranked.html") {
-                            std::wstring localPath = App::GetExeDir() + L"\\ui\\ranked.html";
+                            std::wstring localPath = app::App::GetExeDir() + L"\\ui\\ranked.html";
                             IStream* stream = nullptr;
                             HRESULT hr = ::SHCreateStreamOnFileEx(localPath.c_str(), 
                                 STGM_READ | STGM_SHARE_DENY_WRITE, 0, FALSE, nullptr, &stream);
