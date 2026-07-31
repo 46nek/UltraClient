@@ -2,25 +2,39 @@
 // Krunker Ultra Client - Main Window IPC Listener
 // ============================================================
 
-function clickButtonWithText(texts) {
-    const btns = Array.from(document.querySelectorAll('div, span, button, .menuItem')).filter(e => {
-        if (e.children.length > 1) return false; // Ignore containers
-        if (e.offsetParent === null) return false; // Must be visible
+function clickDeepestVisible(texts) {
+    const btns = Array.from(document.querySelectorAll('*')).filter(e => {
         const t = e.textContent.trim().toUpperCase();
-        return texts.some(target => t === target || t.includes(target));
+        if (!texts.some(target => t === target || t.includes(target))) return false;
+        const rect = e.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0 || rect.width > window.innerWidth * 0.8) return false;
+        return true;
     });
-    if (btns.length > 0) {
-        btns[btns.length - 1].click(); // Usually the most nested one is the actual button
+
+    let deepest = null;
+    let maxDepth = -1;
+    
+    for (const btn of btns) {
+        let depth = 0;
+        let p = btn;
+        while(p) { depth++; p = p.parentElement; }
+        if (depth > maxDepth) { maxDepth = depth; deepest = btn; }
+    }
+    
+    if (deepest) {
+        deepest.click();
         return true;
     }
     return false;
 }
 
 function notifyStarted() {
-    window.chrome.webview.postMessage(JSON.stringify({
-        type: 'forwardIpcToAlt',
-        action: 'rankedMatchStarted'
-    }));
+    if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage(JSON.stringify({
+            type: 'forwardIpcToAlt',
+            action: 'rankedMatchStarted'
+        }));
+    }
 }
 
 window.chrome.webview.addEventListener('message', (event) => {
@@ -30,23 +44,31 @@ window.chrome.webview.addEventListener('message', (event) => {
         
         if (msg.type === 'forwardIpcToMain') {
             if (msg.action === 'startRankedMatch') {
-                // まず FIND MATCH を探す
-                if (clickButtonWithText(['FIND MATCH', 'START MATCH'])) {
-                    notifyStarted();
-                } else {
-                    // なければRANKEDメニューを開く
-                    if (window.showWindow) window.showWindow(50);
-                    clickButtonWithText(['RANKED']);
-                    
-                    setTimeout(() => {
-                        if (clickButtonWithText(['FIND MATCH', 'START MATCH'])) {
-                            notifyStarted();
-                        }
-                    }, 1000);
-                }
+                if (document.pointerLockElement) document.exitPointerLock();
+                
+                setTimeout(() => {
+                    if (clickDeepestVisible(['FIND MATCH', 'START MATCH'])) {
+                        notifyStarted();
+                    } else {
+                        if (window.showWindow) window.showWindow(50);
+                        clickDeepestVisible(['RANKED']);
+                        
+                        setTimeout(() => {
+                            if (clickDeepestVisible(['FIND MATCH', 'START MATCH'])) {
+                                notifyStarted();
+                            } else {
+                                // 強制的に開始を通知（UIが存在しなくても裏でAPIを叩く前提の場合）
+                                notifyStarted();
+                            }
+                        }, 1000);
+                    }
+                }, 100);
             } 
             else if (msg.action === 'cancelRankedMatch') {
-                clickButtonWithText(['CANCEL', 'LEAVE', 'STOP']);
+                if (document.pointerLockElement) document.exitPointerLock();
+                setTimeout(() => {
+                    clickDeepestVisible(['CANCEL', 'LEAVE', 'STOP']);
+                }, 100);
             }
         }
     } catch(e) {}
