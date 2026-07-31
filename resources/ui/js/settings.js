@@ -291,7 +291,7 @@
 
   function sendMessage(obj) {
     try {
-      window.chrome?.webview?.postMessage(obj);
+      window.chrome?.webview?.postMessage(JSON.stringify(obj));
     } catch (_) {}
   }
 

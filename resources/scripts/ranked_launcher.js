@@ -8,9 +8,9 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (window.chrome && window.chrome.webview) {
-            window.chrome.webview.postMessage({
+            window.chrome.webview.postMessage(JSON.stringify({
                 type: 'openAltWindow'
-            });
+            }));
         }
     }
 }, true);
