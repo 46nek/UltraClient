@@ -48,7 +48,6 @@ std::wstring WebViewHost::BuildBrowserArguments() const {
 
     if (m_config.disableGpuVsync) {
         args += L"--disable-gpu-vsync ";
-        args += L"--disable-frame-rate-limit ";
     }
 
     if (m_config.ignoreGpuBlocklist) {
