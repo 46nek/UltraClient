@@ -355,7 +355,6 @@ bool App::Init(HINSTANCE hInstance) {
                                     return TRUE;
                                 }, (LPARAM)&ctx);
                             }
-                            }
                         }
                     });
 
