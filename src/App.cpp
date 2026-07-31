@@ -331,6 +331,8 @@ bool App::Init(HINSTANCE hInstance) {
                             } else if (type == "openAltWindow") {
                                 std::wstring exePath = GetExeDir() + L"\\KrunkerUltraClient.exe";
                                 ::ShellExecuteW(nullptr, L"open", exePath.c_str(), L"--alt-window", nullptr, SW_SHOWNORMAL);
+                            } else if (type == "playBeep") {
+                                ::MessageBeep(MB_OK);
                             } else if (type == "forwardIpcToMain" || type == "forwardIpcToAlt") {
                                 // Broadcast to all KrunkerUltraClientWnd windows to bypass dynamic title changes
                                 struct BroadcastCtx {

@@ -39,9 +39,18 @@ window.chrome.webview.addEventListener('message', (event) => {
                 } catch(e) {
                     notifyError("Failed to access localStorage: " + e.message);
                 }
-            } 
+            } else if (msg.action === 'matchFound') {
+                // The ranked matchmaking server found a match.
+                let payload = msg.payload;
+                if (payload && payload.gameId) {
+                    location.href = "https://krunker.io/?game=" + payload.gameId;
+                } else if (payload && payload.url) {
+                    location.href = payload.url;
+                } else {
+                    // Fallback to reloading, Krunker will show the Rejoin button on load
+                    location.reload();
+                }
+            }
         }
     } catch(e) {}
 });
-
-

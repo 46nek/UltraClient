@@ -149,16 +149,32 @@
                         const data = JSON.parse(event.data);
                         if (data.type === 'QUEUE_STATUS') {
                             if (data.payload && data.payload.status === 'MATCHED') {
-                                playBeep();
+                                // 1. Play sound natively via C++
+                                window.chrome.webview.postMessage(JSON.stringify({ type: 'playBeep' }));
+                                
+                                // 2. Tell Main Window to reload/handle rejoin
+                                window.chrome.webview.postMessage(JSON.stringify({
+                                    type: 'forwardIpcToMain',
+                                    action: 'matchFound',
+                                    payload: data.payload
+                                }));
+                                
                                 statusText.textContent = 'Status: MATCH FOUND!';
                                 statusText.style.color = '#5ce05a';
-                                kucMatchStatus.innerHTML = 'Match Found!<br>Open the main Krunker client and rejoin the game from the Ranked menu.';
+                                kucMatchStatus.innerHTML = 'Match Found!<br>The main client should update to show Rejoin shortly.';
                                 kucMatchStatus.style.display = 'block';
                                 
                                 clearInterval(timerInterval);
                                 isQueued = false;
                                 findMatchBtn.textContent = 'FIND MATCH';
                                 findMatchBtn.style.background = '#ea580c';
+                                
+                                // 3. Reset UI after 20 seconds
+                                setTimeout(() => {
+                                    resetUI();
+                                    statusText.textContent = 'Status: Idle';
+                                    kucMatchStatus.style.display = 'none';
+                                }, 20000);
                             }
                         } else if (data.type === 'ERROR') {
                             if (data.payload && data.payload.code === 'COOLDOWN') {
