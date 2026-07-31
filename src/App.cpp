@@ -343,7 +343,7 @@ bool App::Init(HINSTANCE hInstance) {
                                 }
                             } else if (type == "openAltWindow") {
                                 // Launch a new instance with --alt-window flag
-                                std::wstring exePath = util::GetExeDir() + L"\\KrunkerUltraClient.exe";
+                                std::wstring exePath = GetExeDir() + L"\\KrunkerUltraClient.exe";
                                 ::ShellExecuteW(nullptr, L"open", exePath.c_str(), L"--alt-window", nullptr, SW_SHOWNORMAL);
                             } else if (type == "forwardIpcToAlt") {
                                 // Send IPC from Main Window to Alt Window
